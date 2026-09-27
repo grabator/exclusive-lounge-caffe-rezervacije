@@ -61,7 +61,9 @@
 </header>
 
 @if (lastReservationId; as id) {
-  <a class="last-res" [routerLink]="['/r', venueSlug, 'rezervacije', 'status', id]">Provjeri svoju rezervaciju →</a>
+  <div class="last-res-wrap">
+    <a class="last-res" [routerLink]="['/r', venueSlug, 'rezervacije', 'status', id]">Provjeri svoju rezervaciju</a>
+  </div>
 }
 
 <main class="list">

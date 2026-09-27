@@ -8,8 +8,9 @@
 </header>
 
 @if (event(); as ev) {
-  <main class="page">
+  <main class="page" [class.has-continue-bar]="table() && !done()">
     <section class="hero" [class.has-image]="!!ev.imageUrl" [style.--hero-image]="ev.imageUrl ? 'url(' + ev.imageUrl + ')' : null">
+      <img class="hero-mark" src="logo.jpg" alt="" aria-hidden="true" />
       <div class="date">
         <span>{{ ev.startsAt | date: 'MMM' }}</span>
         <b>{{ ev.startsAt | date: 'd' }}</b>
@@ -44,7 +45,15 @@
         <app-floor-map [plan]="ev.floorPlan" [selectedId]="table()?.id ?? null" (select)="pickTable($event)" />
       </section>
 
-      <form class="card" [formGroup]="form" (ngSubmit)="submit(ev)" novalidate>
+      @if (table()) {
+        <div class="continue-bar">
+          <button class="continue-btn" type="button" (click)="continueToForm()">
+            Nastavi — stol {{ table()!.label }}
+          </button>
+        </div>
+      }
+
+      <form class="card" id="guest-form" [formGroup]="form" (ngSubmit)="submit(ev)" novalidate>
         <div class="card-head"><h2>Tvoji podaci</h2></div>
 
         <label class="field" [class.bad]="invalid('fullName')">

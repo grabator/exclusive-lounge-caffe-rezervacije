@@ -43,6 +43,10 @@ export class EventPageComponent {
     this.error.set(null);
   }
 
+  continueToForm() {
+    document.getElementById('guest-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   invalid(name: keyof typeof this.form.controls) {
     const c = this.form.controls[name];
     return c.invalid && (c.touched || c.dirty);
