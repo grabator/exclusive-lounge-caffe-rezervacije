@@ -1,7 +1,9 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { DatePipe, formatDate } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { AdminEvent, AdminReservation, AdminService } from '../../core/admin.service';
 
 const STORAGE_KEY = 'rezervacije-admin-pw';
@@ -285,21 +287,58 @@ export class AdminPageComponent {
     });
   }
 
-  exportCsv() {
+  async exportPdf() {
     const rows = this.filtered();
-    const header = ['Event', 'Stol', 'Ime i prezime', 'Telefon', 'Napomena', 'Status', 'Poslano'];
-    const csvRows = [header, ...rows.map(r => [
-      r.eventTitle, r.tableLabel, r.fullName, r.phone, r.note ?? '', this.statusLabel(r.status), r.createdAt,
-    ])];
-    const csv = csvRows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\r\n');
-    // BOM na početku - bez njega Excel pogrešno čita č/ć/š/ž/đ.
-    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `rezervacije-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const [regular, bold] = await Promise.all([
+      loadFontBase64('fonts/Roboto-Regular.ttf'),
+      loadFontBase64('fonts/Roboto-Bold.ttf'),
+    ]);
+
+    const doc = new jsPDF();
+    doc.addFileToVFS('Roboto-Regular.ttf', regular);
+    doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
+    doc.addFileToVFS('Roboto-Bold.ttf', bold);
+    doc.addFont('Roboto-Bold.ttf', 'Roboto', 'bold');
+    doc.setFont('Roboto');
+
+    const evId = this.eventFilter();
+    const ev = evId !== 'all' ? this.events().find(e => e.id === evId) : undefined;
+    const showEventColumn = evId === 'all';
+
+    doc.setFontSize(16);
+    doc.setFont('Roboto', 'bold');
+    doc.text('Exclusive Caffe Lounge', 14, 18);
+
+    doc.setFontSize(11);
+    doc.setFont('Roboto', 'normal');
+    doc.setTextColor(90);
+    const statusText = this.filter() === 'all' ? 'Sve' : this.statusLabel(this.filter());
+    const subtitle = ev
+      ? `${ev.title} · ${formatDate(ev.startsAt, 'EEEE, d. MMMM, HH:mm', 'bs')} — ${statusText}`
+      : `${statusText} rezervacije - svi eventi`;
+    doc.text(subtitle, 14, 25);
+
+    doc.setFontSize(9);
+    doc.text(`Generisano: ${formatDate(new Date(), 'd.M.yyyy. HH:mm', 'bs')}`, 196, 18, { align: 'right' });
+
+    const head = showEventColumn
+      ? [['Event', 'Stol', 'Ime i prezime', 'Telefon']]
+      : [['Stol', 'Ime i prezime', 'Telefon']];
+    const body = rows.map(r => showEventColumn
+      ? [r.eventTitle, r.tableLabel, r.fullName, r.phone]
+      : [r.tableLabel, r.fullName, r.phone]);
+
+    autoTable(doc, {
+      head,
+      body,
+      startY: 31,
+      styles: { font: 'Roboto', fontSize: 11, cellPadding: 3 },
+      headStyles: { font: 'Roboto', fontStyle: 'bold', fillColor: [255, 255, 255], textColor: 20, lineWidth: 0.2, lineColor: 30 },
+      theme: 'striped',
+    });
+
+    const slug = ev ? ev.title.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'svi-eventi';
+    doc.save(`rezervacije-${slug}.pdf`);
   }
 
   statusLink(r: AdminReservation): string {
@@ -347,4 +386,21 @@ export class AdminPageComponent {
 
 function sortReservations(list: AdminReservation[]): AdminReservation[] {
   return [...list].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+const fontCache = new Map<string, string>();
+
+// jsPDF-u treba font ugradjen kao base64 da bi ispravno prikazao č/ć/š/ž/đ -
+// ugradjeni jsPDF fontovi (Helvetica i sl.) nemaju te znakove. Ucitava se
+// samo jednom po sesiji (keš), a ne pri svakom kliku na "Izvoz u PDF".
+async function loadFontBase64(path: string): Promise<string> {
+  const cached = fontCache.get(path);
+  if (cached) return cached;
+  const buffer = await fetch(path).then(r => r.arrayBuffer());
+  let binary = '';
+  const bytes = new Uint8Array(buffer);
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  const base64 = btoa(binary);
+  fontCache.set(path, base64);
+  return base64;
 }
