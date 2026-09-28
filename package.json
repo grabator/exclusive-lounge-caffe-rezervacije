@@ -1,6 +1,7 @@
 {
   "name": "rezervacije",
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Web aplikacija za rezervaciju stolova u Exclusive Caffe Loungeu.",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
