@@ -16,3 +16,7 @@ Live: https://rezervacije-production-6f84.up.railway.app
 ## Tehnologije
 
 Angular 19 · .NET 10 (minimal API) · SQLite · GitHub Actions
+
+## Hosting
+
+Frontend i backend rade kao dva odvojena servisa na [Railway](https://railway.app), svaki sa sopstvenim URL-om. Baza je na trajnom volume-u, tako da podaci ostaju i nakon redeploy-a.
