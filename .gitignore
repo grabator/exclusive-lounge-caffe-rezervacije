@@ -44,6 +44,9 @@ testem.log
 .DS_Store
 Thumbs.db
 
+# Generisani dokumenti (uputstva i sl.) - nisu dio izvornog koda
+/*.pdf
+
 # .NET backend
 api/**/bin/
 api/**/obj/
