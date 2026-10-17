@@ -1,22 +1,29 @@
-# Exclusive Caffe Lounge — Rezervacije
+# Exclusive Caffe Lounge reservations
 
-Web aplikacija za rezervaciju stolova u Exclusive Caffe Loungeu. Gost bira event i sto direktno na interaktivnoj mapi sale i dobija potvrdu, a vlasnik lokala sve upravlja iz admin panela — bez ijednog poziva ili papira.
+Table booking app for a café lounge. Guests pick an event and their exact table on an interactive floor plan, and the owner manages everything from an admin panel, with no phone calls or paper.
 
-Live: https://rezervacije-production-6f84.up.railway.app
+**Live:** https://rezervacije-production-6f84.up.railway.app/r/exclusive/rezervacije
 
-## Šta radi
+## What's inside
 
-- Interaktivna mapa sale umjesto obične liste — gost bira tačno svoj sto
-- Zaštita od duple rezervacije, spam-zahtjeva i pogađanja admin lozinke
-- Admin panel: potvrda/odbijanje zahtjeva, upravljanje eventima, izvoz spiska gostiju u PDF
-- Telegram notifikacija adminu čim neko rezerviše ili otkaže
-- WhatsApp/Viber prečice za brz kontakt sa gostom
-- Gost sam može otkazati rezervaciju preko sigurnog linka, bez zvanja lokala
+- Interactive floor plan instead of a plain list
+- Protection against double bookings, spam requests and admin password guessing
+- Admin panel: confirm or decline requests, manage events, export the guest list as PDF
+- Telegram alert to the admin for every booking or cancellation
+- WhatsApp and Viber shortcuts to contact a guest
+- Guests can cancel through a secure link
 
-## Tehnologije
+## Tech
 
-Angular 19 · .NET 10 (minimal API) · SQLite · GitHub Actions
+Angular 19, .NET 10 (minimal API), SQLite, GitHub Actions. Frontend and backend run as two services on Railway, with the database on a persistent volume.
 
-## Hosting
+## Run locally
 
-Frontend i backend rade kao dva odvojena servisa na [Railway](https://railway.app), svaki sa sopstvenim URL-om. Baza je na trajnom volume-u, tako da podaci ostaju i nakon redeploy-a.
+```
+npm install
+npm start
+```
+
+The API is in `api/Rezervacije.Api` (`dotnet run`).
+
+Made by [Ahmed Grabus (Graba)](https://graba-portofolio.grabafaceit.workers.dev)
